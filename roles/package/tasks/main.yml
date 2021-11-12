@@ -1,0 +1,12 @@
+---
+# tasks file for package
+
+- name: Installation des packages
+  package:
+   name: 
+    - htop 
+    - git 
+    - zsh
+    - sudo
+   state: latest
+   update_cache: yes

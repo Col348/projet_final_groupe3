@@ -1,0 +1,16 @@
+---
+# tasks file for nginx
+- name: Installation de Nginx
+  package:
+   name: nginx
+   state: present
+   update_cache: yes
+  notify: Redemarrer nginx
+
+- name: ajout php
+  include: php.yml
+
+- name: Configuration des sites
+  include: sites.yml
+  with_items: "{{ domains }}"
+  notify: Redemarrer nginx

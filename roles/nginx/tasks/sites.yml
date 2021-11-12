@@ -1,0 +1,23 @@
+
+- name: Configuration de nginx
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Création d'un repertoir dans de le home de "{{ user }}"
+  file: 
+    path: /home/{{ user }}/{{ item.domain }}
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+
+- name: Creation d'un lien symbolique
+  file: src=/home/{{ user }}/{{ item.domain }} dest=/var/www/{{ item.domain }} state=link  
+
+- name: Export du fichier de configuration de "{{ item.domain }}"
+  template: 
+   src: nginx.j2 
+   dest: /etc/nginx/sites-available/{{ item.domain }}
+
+- name: Active le nouveau site web
+  file: src=/etc/nginx/sites-available/{{ item.domain }} dest=/etc/nginx/sites-enabled/{{ item.domain }} state=link

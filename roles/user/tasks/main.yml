@@ -1,0 +1,20 @@
+---
+# tasks file for user
+
+- name: Créer un utilisateur sur Debian
+  user:
+    name: "{{ user }}"
+    state: present
+    shell: /usr/bin/zsh
+    password: "{{ 'stage' | password_hash('sha512') }}"
+
+- name: utilisation de la clef
+  authorized_key:
+    user: "{{ user }}"
+    key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+
+- name: Utilisation de template
+  template: 
+    src: sudo.j2
+    dest: /etc/sudoers.d/{{ user }}  
+    validate: 'visudo -cf %s'

@@ -1,0 +1,10 @@
+- name: installation php
+  package: name={{ item }} state=latest
+  with_items: "{{ php_packages }}"
+
+- name: setup php
+  lineinfile:
+    path: /etc/php/7.4/fpm/php.ini
+    regexp: '^(.*){{ item }}(.*)$'
+    line: "{{ item }} = {{ lookup('vars', 'php_' + item) }}"
+  with_items: "{{ php_cfg_list }}"

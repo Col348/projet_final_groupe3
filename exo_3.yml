@@ -1,0 +1,56 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:   
+    region: ap-northeast-1
+    image: ami-0ac97798ccf296e02
+    key_name: key_colas
+    name_instance: ServerCol
+    subnet: subnet-0e6bf0157233f5de8
+    hosts_file: /etc/ansible/hosts
+  vars_files:
+    - my_key.yml
+
+  tasks:
+    - name: installation module python boto
+      pip: 
+        name: 
+          - boto
+          - boto3
+        state: present
+
+    - name: Creation de clef
+      ec2_key:
+        aws_access_key: "{{ access_key }}"
+        aws_secret_key: "{{ secret_key }}"
+        name: "{{ key_name }}"
+        region: "{{ region }}"
+      register: ec2_key_result
+
+    - name: Save private key
+      copy: content="{{ ec2_key_result.key.private_key }}" dest="./aws.key_colas.pem" mode=0600
+      when: ec2_key_result.changed
+
+    - name: Creation de l'instance
+      ec2:
+        aws_access_key: "{{ access_key }}"  
+        aws_secret_key: "{{ secret_key }}"
+        instance_type: t2.micro
+        image: "{{ image }}"
+        key_name: "{{ key_name }}"
+        count: 1
+        group: default
+        region: "{{ region }}"
+        wait: yes       
+        vpc_subnet_id: "{{ subnet }}"
+        assign_public_ip: yes
+        instance_tags:
+           Name: "{{ name_instance }}"
+      register: ec2
+    
+    - name: Save IP to inventory file
+      lineinfile:
+       dest: "{{hosts_file}}"
+       insertafter: '\[webservers\]'
+       line: "{{item.public_ip}}"
+      with_items: "{{ec2.instances}}"

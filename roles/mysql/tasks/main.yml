@@ -1,0 +1,32 @@
+---
+# tasks file for mysql
+
+- name: Upload de .my.cnf  
+  copy:
+    src: .my.cnf
+    dest: /root/.my.cnf
+
+- name: Mise à jour MDP root pour tout les comptes root  
+  mysql_user:  
+    login_user: root  
+    login_password: "{{ mysql_root_password }}" 
+    name: root 
+    host: localhost  
+    password: "{{ mysql_root_password }}"  
+    check_implicit_admin: yes  
+    priv: "*.*:ALL,GRANT"
+  notify: Redemarrer mysql  
+
+- name: Upload sql file 
+  copy: 
+    src: dump.sql 
+    dest: /tmp/dump.sql  
+
+- name: import sql file script into databases 
+  mysql_db: 
+    name: Ma_DB 
+    state: import 
+    target: /tmp/dump.sql 
+    login_user: root 
+    login_password: "{{ mysql_root_password }}"
+  notify: Redemarrer mysql
